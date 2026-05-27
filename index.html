@@ -1506,10 +1506,24 @@ function calcFlipDims() {
 function initFlip() {
   if (pageFlip) { try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
 
+  // Duplo requestAnimationFrame: garante que o layout já foi calculado
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    _doInitFlip();
+  }));
+}
+
+function _doInitFlip() {
   const { w, h } = calcFlipDims();
   const isMobile = window.innerWidth < 700;
   const pageEls = document.querySelectorAll('#book .page');
-  if (!pageEls.length) return;
+  if (!pageEls.length) { console.warn('[Album] Nenhuma pagina encontrada'); return; }
+
+  // Define dimensões explícitas no container antes do PageFlip
+  const bookEl = document.getElementById('book');
+  const bookW  = isMobile ? w : w * 2;
+  bookEl.style.width  = bookW + 'px';
+  bookEl.style.height = h + 'px';
+  console.log('[Album] Inicializando PageFlip:', bookW, 'x', h, '| paginas:', pageEls.length);
 
   try {
     pageFlip = new St.PageFlip(document.getElementById('book'), {
@@ -1539,7 +1553,7 @@ function initFlip() {
     pageFlip.on('changeState', updateNav);
     updateNav();
   } catch (e) {
-    console.error('PageFlip error:', e);
+    console.error('[Album] PageFlip error:', e);
   }
 }
 
@@ -1562,9 +1576,9 @@ function updateNav() {
 async function refresh(goToLast = false) {
   const curPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
   renderAll();
-  await sleep(80);
+  await sleep(350);
   initFlip();
-  await sleep(100);
+  await sleep(500);
   if (goToLast) {
     const backIdx = pages.findIndex(p => p.layout === 'back_cover');
     const target  = backIdx > 1 ? backIdx - 1 : pages.length - 2;
@@ -1888,9 +1902,9 @@ async function startAlbum() {
   initFirebase();
   await loadPages();
   renderAll();
-  await sleep(120);
+  await sleep(400);
   initFlip();
-  await sleep(200);
+  await sleep(700);
   albumScreen.style.opacity = '1';
 }
 
