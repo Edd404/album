@@ -289,14 +289,15 @@
 
     /* ─── Book wrapper ─── */
     #book-wrapper {
-      position: relative;
+      position: absolute;
+      top: 50px; bottom: 64px; left: 0; right: 0;
       display: flex; align-items: center; justify-content: center;
-      width: 100%; flex: 1;
-      padding: 54px 16px 76px;
+      padding: 8px 16px;
     }
 
     #book {
       box-shadow: var(--shadow-book);
+      flex-shrink: 0;
     }
 
     /* ─── Navigation controls ─── */
@@ -1125,9 +1126,9 @@
    ═══════════════════════════════════════════════════════════════ */
 const CONFIG = {
 
-  password:    'familia',              // ← MUDE AQUI
-  albumTitle:  'Nossa Família',        // ← nome na capa
-  albumSub:    'momentos que ficam',   // ← subtítulo na capa
+  password:    'familia',
+  albumTitle:  'Nossa Família',
+  albumSub:    'momentos que ficam',
 
   firebase: {
     apiKey:            'AIzaSyBx5P8_wVNAFKDl2D8zsZsrp5mZp-UNlQc',
@@ -1139,8 +1140,8 @@ const CONFIG = {
   },
 
   cloudinary: {
-    cloudName:    'dyykp5cmp',    // ← ex: 'familia-album'
-    uploadPreset: 'ha6i0afa',        // ← preset unsigned criado no Cloudinary
+    cloudName:    'dyykp5cmp',
+    uploadPreset: 'ha6i0afa',
   }
 };
 
@@ -1483,17 +1484,22 @@ function htmlSlot(pageId, slot, i, layout) {
    PAGE FLIP
    ═══════════════════════════════════════════════════════════════ */
 function calcFlipDims() {
-  const wrap = document.getElementById('book-wrapper');
-  const avW  = (wrap.offsetWidth - 40) / 2;
-  const avH  = wrap.offsetHeight - 16;
+  const vw    = window.innerWidth;
+  const vh    = window.innerHeight;
+  const avH   = vh - 130;
+  const avW   = vw - 40;
   const ratio = 1.35;
+  const isMob = vw < 700;
 
-  let w = Math.min(avW, 480);
+  let w = isMob
+    ? Math.min(avW, 420)
+    : Math.min(avW / 2, 500);
+
   let h = w * ratio;
   if (h > avH) { h = avH; w = h / ratio; }
 
-  w = Math.max(Math.floor(w), 200);
-  h = Math.max(Math.floor(h), 280);
+  w = Math.max(Math.floor(w), 240);
+  h = Math.max(Math.floor(h), 320);
   return { w, h };
 }
 
