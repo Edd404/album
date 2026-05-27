@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1e1208">
+  <title>Nosso Álbum ♥</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Caveat:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       RESET & VARIABLES
+    ═══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:          #1e1208;
+      --bg2:         #2c1a0e;
+      --cover-dark:  #2d1406;
+      --cover-mid:   #4a2010;
+      --paper:       #fdf6e3;
+      --paper2:      #f8edd4;
+      --paper3:      #f0e0be;
+      --brown:       #5c3317;
+      --brown2:      #7a4526;
+      --gold:        #c9a84c;
+      --gold-light:  #e8c97a;
+      --gold-dim:    rgba(201,168,76,0.35);
+      --cream:       #fff8e7;
+      --ink:         #2c1810;
+      --tape-color:  rgba(255,225,130,0.55);
+      --shadow-book: 0 40px 100px rgba(0,0,0,0.85), 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Caveat', cursive;
+      background: var(--bg);
+    }
+
+    /* Paper noise grain overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LOADING SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 3000;
+      transition: opacity 0.7s ease;
+    }
+    #loading-screen.fade-out { opacity: 0; pointer-events: none; }
+
+    .loading-heart {
+      font-size: 2.8rem;
+      animation: heartBeat 1.6s ease-in-out infinite;
+      margin-bottom: 18px;
+    }
+    @keyframes heartBeat {
+      0%,100% { transform: scale(1); opacity:1; }
+      50%      { transform: scale(1.18); opacity:0.7; }
+    }
+
+    .loading-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--gold-light);
+      font-size: 2.2rem;
+      margin-bottom: 28px;
+      text-shadow: 0 2px 12px rgba(201,168,76,0.3);
+    }
+
+    .loading-bar-wrap {
+      width: 160px; height: 2px;
+      background: rgba(201,168,76,0.15);
+      overflow: hidden;
+    }
+    .loading-bar {
+      height: 100%;
+      background: var(--gold);
+      animation: loadBar 1.2s ease-in-out infinite;
+    }
+    @keyframes loadBar {
+      0%   { width: 0%; margin-left: 0; }
+      50%  { width: 60%; margin-left: 20%; }
+      100% { width: 0%; margin-left: 100%; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LOGIN SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #login-screen {
+      position: fixed; inset: 0;
+      display: none;
+      align-items: center; justify-content: center;
+      background: var(--bg);
+    }
+
+    .login-bg-glow {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 60%, rgba(92,51,23,0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 40%, rgba(201,168,76,0.12) 0%, transparent 70%);
+    }
+
+    /* Scattered decorative polaroids in background */
+    .bg-photos { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .bg-pol {
+      position: absolute;
+      background: #fff;
+      box-shadow: 3px 5px 18px rgba(0,0,0,0.45);
+      opacity: 0.08;
+    }
+    .bg-pol::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30%; background: #f8f8f8; }
+    .bp1 { width:110px; height:130px; top:8%; left:4%; transform:rotate(-14deg); padding:7px 7px 24px; }
+    .bp2 { width:90px; height:110px; bottom:15%; left:6%; transform:rotate(9deg); padding:6px 6px 20px; }
+    .bp3 { width:120px; height:145px; top:15%; right:4%; transform:rotate(11deg); padding:7px 7px 26px; }
+    .bp4 { width:100px; height:120px; bottom:10%; right:6%; transform:rotate(-8deg); padding:6px 6px 22px; }
+    .bp5 { width:80px; height:96px; bottom:4%; left:45%; transform:rotate(4deg); padding:5px 5px 18px; }
+    .bp6 { width:95px; height:115px; top:5%; left:35%; transform:rotate(-6deg); padding:6px 6px 21px; }
+
+    .login-card {
+      position: relative; z-index: 1;
+      background: var(--paper);
+      width: 90%; max-width: 420px;
+      padding: 52px 56px;
+      text-align: center;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    /* Subtle inner border */
+    .login-card::before {
+      content: '';
+      position: absolute; inset: 12px;
+      border: 1px solid var(--gold-dim);
+      pointer-events: none;
+    }
+
+    .login-floral {
+      font-size: 2.2rem; color: var(--gold);
+      display: block; margin-bottom: 10px;
+      line-height: 1;
+    }
+
+    .login-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 2.6rem;
+      color: var(--brown);
+      margin-bottom: 4px;
+    }
+
+    .login-sub {
+      font-family: 'Caveat', cursive;
+      font-size: 1.15rem;
+      color: #9a7050;
+      margin-bottom: 32px;
+    }
+
+    .login-rule {
+      width: 50px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      margin: 0 auto 28px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.75);
+      border: 1.5px solid rgba(92,51,23,0.18);
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem;
+      color: var(--ink);
+      text-align: center;
+      letter-spacing: 4px;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      margin-bottom: 14px;
+    }
+    .login-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .login-input::placeholder {
+      letter-spacing: 1px; color: #c4a87a; font-size: 1.1rem;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%,60%  { transform: translateX(-6px); }
+      40%,80%  { transform: translateX(6px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    .login-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--brown);
+      color: var(--cream);
+      border: none;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.25s, transform 0.1s;
+    }
+    .login-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
+      pointer-events: none;
+    }
+    .login-btn:hover { background: var(--brown2); }
+    .login-btn:active { transform: scale(0.985); }
+
+    .login-error {
+      font-family: 'Caveat', cursive;
+      color: #c0392b; font-size: 1rem;
+      margin-top: 10px; min-height: 22px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ALBUM SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #album-screen {
+      position: fixed; inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(92,51,23,0.25) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    /* Wood shelf at bottom */
+    #album-screen::after {
+      content: '';
+      position: fixed; bottom: 0; left: 0; right: 0; height: 90px;
+      background: linear-gradient(to top, rgba(18,8,2,0.95) 0%, transparent 100%);
+      pointer-events: none; z-index: 5;
+    }
+
+    /* ─── Header ─── */
+    .album-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 10px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(18,8,2,0.85) 0%, transparent 100%);
+      z-index: 50;
+    }
+
+    .ah-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--gold-light);
+      font-size: 1.25rem;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    }
+
+    .ah-actions { display: flex; gap: 8px; }
+
+    .ah-btn {
+      background: none;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-light);
+      padding: 6px 16px;
+      font-family: 'Caveat', cursive;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ah-btn:hover {
+      background: rgba(201,168,76,0.12);
+      border-color: var(--gold);
+    }
+
+    /* ─── Book wrapper ─── */
+    #book-wrapper {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; flex: 1;
+      padding: 54px 16px 76px;
+    }
+
+    #book {
+      box-shadow: var(--shadow-book);
+    }
+
+    /* ─── Navigation controls ─── */
+    #book-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px;
+      padding: 14px 24px 22px;
+      z-index: 50;
+    }
+
+    .nav-btn {
+      background: none;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-light);
+      width: 46px; height: 46px;
+      font-size: 1.6rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    .nav-btn:hover { background: rgba(201,168,76,0.12); border-color: var(--gold); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn:disabled:hover { background: none; border-color: var(--gold-dim); }
+
+    #page-counter {
+      font-family: 'Caveat', cursive;
+      color: rgba(232,201,122,0.6);
+      font-size: 0.95rem;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PAGES
+    ═══════════════════════════════════════════════════════════ */
+    .page {
+      position: relative;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    /* Paper texture */
+    .page-texture {
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(92,51,23,0.025) 28px, rgba(92,51,23,0.025) 29px),
+        linear-gradient(135deg, var(--paper) 0%, var(--paper2) 50%, var(--paper3) 100%);
+      pointer-events: none;
+    }
+
+    /* Corner ornaments */
+    .page-corner {
+      position: absolute;
+      width: 18px; height: 18px;
+      border-color: var(--gold-dim);
+      border-style: solid;
+      pointer-events: none; z-index: 2;
+    }
+    .pc-tl { top: 10px; left: 10px; border-width: 1px 0 0 1px; }
+    .pc-tr { top: 10px; right: 10px; border-width: 1px 1px 0 0; }
+    .pc-bl { bottom: 10px; left: 10px; border-width: 0 0 1px 1px; }
+    .pc-br { bottom: 10px; right: 10px; border-width: 0 1px 1px 0; }
+
+    /* ─── Cover page ─── */
+    .page-cover {
+      background: linear-gradient(160deg, var(--cover-dark) 0%, var(--cover-mid) 40%, var(--cover-dark) 100%) !important;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .page-cover .page-texture { display: none; }
+
+    /* Tooled leather texture on cover */
+    .cover-texture {
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 22px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 22px);
+      pointer-events: none;
+    }
+    .cover-border-outer { position: absolute; inset: 10px; border: 1px solid rgba(201,168,76,0.45); pointer-events:none; }
+    .cover-border-inner { position: absolute; inset: 17px; border: 1px solid rgba(201,168,76,0.2); pointer-events:none; }
+
+    .cover-content {
+      position: relative; z-index: 1;
+      text-align: center; padding: 30px;
+    }
+    .cover-floral {
+      font-size: 2.8rem; color: var(--gold);
+      display: block; margin-bottom: 16px;
+      text-shadow: 0 2px 12px rgba(201,168,76,0.4);
+    }
+    .cover-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--gold-light);
+      font-size: clamp(1.6rem, 4vw, 2.5rem);
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      line-height: 1.2;
+    }
+    .cover-rule {
+      width: 50px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      margin: 10px auto;
+    }
+    .cover-subtitle {
+      font-family: 'Caveat', cursive;
+      color: rgba(232,201,122,0.65);
+      font-size: 1rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    /* ─── Back cover ─── */
+    .page-back-cover {
+      background: linear-gradient(160deg, var(--cover-dark) 0%, var(--cover-mid) 40%, var(--cover-dark) 100%) !important;
+    }
+    .page-back-cover .page-texture { display: none; }
+
+    /* ─── Content page ─── */
+    .page-inner {
+      position: absolute; inset: 0;
+      padding: 16px;
+      display: flex; flex-direction: column;
+    }
+
+    .page-meta {
+      text-align: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--gold-dim);
+      flex-shrink: 0;
+    }
+    .page-meta-date {
+      font-family: 'Caveat', cursive;
+      font-size: 0.85rem; color: #9a7050;
+    }
+    .page-meta-summary {
+      font-family: 'Caveat', cursive;
+      font-style: italic;
+      font-size: 0.82rem; color: #b08060;
+      margin-top: 1px;
+    }
+
+    /* Page number */
+    .page-num {
+      position: absolute;
+      bottom: 7px; font-family: 'Caveat', cursive;
+      font-size: 0.75rem; color: rgba(92,51,23,0.3);
+      pointer-events: none; z-index: 2;
+    }
+    .page-num-l { left: 14px; }
+    .page-num-r { right: 14px; }
+
+    /* Layout config button */
+    .layout-cfg-btn {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 26px; height: 26px;
+      background: rgba(92,51,23,0.1);
+      border: 1px dashed rgba(92,51,23,0.3);
+      color: var(--brown);
+      border-radius: 50%;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; z-index: 10;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    .page:hover .layout-cfg-btn { opacity: 1; }
+    .layout-cfg-btn:hover { background: var(--brown); color: white; }
+
+    /* ─── Slots area ─── */
+    .slots-single {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .slots-quad {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* ─── Polaroid ─── */
+    .polaroid {
+      background: white;
+      padding: 6px 6px 22px;
+      box-shadow: 2px 3px 9px rgba(0,0,0,0.22), 0 1px 2px rgba(0,0,0,0.1);
+      position: relative;
+      cursor: pointer;
+      transition: box-shadow 0.25s, transform 0.25s;
+      display: flex; flex-direction: column;
+    }
+    .polaroid:hover {
+      box-shadow: 4px 7px 22px rgba(0,0,0,0.32);
+      transform: scale(1.04) !important;
+      z-index: 20;
+    }
+
+    /* Tape */
+    .polaroid::before {
+      content: '';
+      position: absolute;
+      top: -7px; left: 50%; transform: translateX(-50%) rotate(-1.5deg);
+      width: 44px; height: 16px;
+      background: var(--tape-color);
+      border: 1px solid rgba(190,155,80,0.25);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .tape-tl::before { left: 22%; transform: translateX(-50%) rotate(-8deg); }
+    .tape-tr::before { left: 78%; transform: translateX(-50%) rotate(7deg); }
+    .tape-c::before  { left: 50%; transform: translateX(-50%) rotate(0deg); }
+    .tape-cl::before { left: 30%; transform: translateX(-50%) rotate(-5deg); }
+
+    .pol-media {
+      width: 100%; aspect-ratio: 1;
+      object-fit: cover; display: block;
+      background: #f0e5ce;
+      flex-shrink: 0;
+    }
+    .pol-caption {
+      font-family: 'Caveat', cursive;
+      font-size: 0.8rem; color: #5c3317;
+      text-align: center;
+      padding: 3px 2px 0;
+      line-height: 1.3;
+      flex: 1; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Video polaroid */
+    .pol-video-wrap {
+      position: relative; aspect-ratio: 1;
+      background: #111; overflow: hidden; flex-shrink: 0;
+    }
+    .pol-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pol-play-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.28);
+    }
+    .pol-play-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.85);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; padding-left: 3px;
+    }
+
+    /* Empty slot */
+    .slot-empty {
+      background: white;
+      padding: 6px 6px 22px;
+      box-shadow: 1px 2px 6px rgba(0,0,0,0.12);
+      position: relative;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      transition: box-shadow 0.2s;
+    }
+    .slot-empty:hover { box-shadow: 2px 4px 14px rgba(0,0,0,0.2); }
+    .slot-empty:hover .slot-ph { opacity: 0.8; }
+
+    .slot-ph {
+      aspect-ratio: 1; width: 100%;
+      border: 1.5px dashed rgba(92,51,23,0.18);
+      background: #fdf8f0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: rgba(92,51,23,0.35);
+      opacity: 0.55; transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .slot-ph-icon { font-size: 1.6rem; margin-bottom: 3px; }
+    .slot-ph-text { font-family: 'Caveat', cursive; font-size: 0.7rem; }
+
+    .slot-empty-cap {
+      font-family: 'Caveat', cursive;
+      font-size: 0.75rem; color: #d4c0a0;
+      text-align: center; padding-top: 3px;
+      flex: 1; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ─── Special page ─── */
+    .special-inner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 28px; text-align: center;
+      cursor: pointer;
+    }
+    .special-ornament { font-size: 2rem; color: var(--gold); margin-bottom: 12px; }
+    .special-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(1.2rem, 3.5vw, 1.9rem);
+      color: var(--brown); margin-bottom: 6px;
+      line-height: 1.25;
+    }
+    .special-date {
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; color: #9a7050; margin-bottom: 12px;
+    }
+    .special-rule {
+      width: 50px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      margin: 0 auto 12px;
+    }
+    .special-text {
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; color: #6b4a30;
+      line-height: 1.6; max-width: 260px;
+    }
+    .special-hint {
+      font-family: 'Caveat', cursive;
+      font-size: 0.85rem; color: rgba(92,51,23,0.3);
+      margin-top: 14px; font-style: italic;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MODALS
+    ═══════════════════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,5,2,0.72);
+      z-index: 500;
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(5px);
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--paper);
+      width: 100%; max-width: 480px;
+      padding: 36px 38px;
+      position: relative;
+      box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+      border-top: 2px solid var(--gold);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-box::-webkit-scrollbar { width: 4px; }
+    .modal-box::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+
+    .modal-close {
+      position: absolute; top: 12px; right: 14px;
+      background: none; border: none;
+      color: #9a7050; font-size: 1.4rem;
+      cursor: pointer; line-height: 1; padding: 4px;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--brown); }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.7rem; color: var(--brown);
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; color: #9a7050;
+      margin-bottom: 22px;
+    }
+
+    .m-label {
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; color: #8b6a4a;
+      display: block; margin-bottom: 5px;
+    }
+    .m-input, .m-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid rgba(92,51,23,0.18);
+      background: rgba(255,255,255,0.75);
+      font-family: 'Caveat', cursive;
+      font-size: 1.1rem; color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 14px;
+    }
+    .m-input:focus, .m-textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+    .m-textarea { resize: vertical; min-height: 80px; }
+
+    .m-btn {
+      background: var(--brown); color: var(--cream);
+      border: none;
+      padding: 13px 28px;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem; letter-spacing: 1px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .m-btn:hover { background: var(--brown2); }
+    .m-btn:active { transform: scale(0.98); }
+
+    .m-btn-ghost {
+      background: transparent; color: var(--brown);
+      border: 1.5px solid rgba(92,51,23,0.25);
+      padding: 12px 22px;
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; cursor: pointer;
+      transition: all 0.2s; margin-left: 10px;
+    }
+    .m-btn-ghost:hover { border-color: var(--brown); background: rgba(92,51,23,0.05); }
+
+    .m-btn-danger {
+      background: none; border: none;
+      color: #b03020;
+      font-family: 'Caveat', cursive;
+      font-size: 0.95rem; cursor: pointer;
+      padding: 6px 0;
+      transition: color 0.2s;
+    }
+    .m-btn-danger:hover { color: #e03a28; }
+
+    .btn-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+    .btn-row-space { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+
+    /* Layout picker */
+    .layout-opts {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 12px; margin-bottom: 20px;
+    }
+    .layout-opt {
+      border: 2px solid rgba(92,51,23,0.18);
+      padding: 14px 8px 10px;
+      cursor: pointer; text-align: center;
+      background: white;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .layout-opt:hover { border-color: var(--gold); background: #fffaef; }
+    .layout-opt.sel  { border-color: var(--brown); background: #fef5e0; }
+
+    .lo-icon {
+      width: 44px; height: 44px;
+      margin: 0 auto 8px;
+      display: grid; gap: 3px;
+    }
+    .lo-icon-single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+    .lo-icon-quad   { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .lo-cell { background: rgba(92,51,23,0.22); }
+    .lo-name {
+      font-family: 'Caveat', cursive;
+      font-size: 0.9rem; color: var(--brown);
+    }
+
+    /* Upload area */
+    .upload-drop {
+      border: 2px dashed rgba(92,51,23,0.25);
+      padding: 28px;
+      text-align: center;
+      background: #fdf8f0;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 14px;
+    }
+    .upload-drop:hover { border-color: var(--gold); background: #fffaef; }
+    .upload-drop-icon { font-size: 2.2rem; margin-bottom: 6px; }
+    .upload-drop-text { font-family: 'Caveat', cursive; font-size: 1.1rem; color: var(--brown); }
+    .upload-drop-sub  { font-family: 'Caveat', cursive; font-size: 0.88rem; color: #9a7050; margin-top: 3px; }
+
+    .upload-preview {
+      display: none; margin-bottom: 14px;
+      text-align: center;
+    }
+    .upload-preview img, .upload-preview video {
+      max-height: 160px; max-width: 100%;
+      object-fit: contain; margin: 0 auto; display: block;
+      border: 1px solid rgba(92,51,23,0.1);
+    }
+    .upload-preview-label {
+      font-family: 'Caveat', cursive;
+      font-size: 0.85rem; color: #9a7050; margin-top: 5px;
+    }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed; bottom: 72px; left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: rgba(20,10,4,0.93);
+      color: var(--gold-light);
+      padding: 10px 24px;
+      font-family: 'Caveat', cursive; font-size: 1.1rem;
+      box-shadow: 0 4px 22px rgba(0,0,0,0.45);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 1000; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ─── Confirmation dialog ─── */
+    .confirm-box {
+      position: fixed; inset: 0;
+      background: rgba(10,5,2,0.75);
+      z-index: 2000;
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .confirm-box.open { display: flex; }
+    .confirm-inner {
+      background: var(--paper);
+      padding: 32px 36px;
+      max-width: 360px; width: 90%;
+      border-top: 2px solid var(--gold);
+      box-shadow: 0 14px 50px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .confirm-msg {
+      font-family: 'Caveat', cursive;
+      font-size: 1.2rem; color: var(--brown);
+      margin-bottom: 22px; line-height: 1.5;
+    }
+    .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 600px) {
+      .login-card { padding: 36px 26px; }
+      .login-title { font-size: 2.1rem; }
+      .modal-box { padding: 28px 22px; }
+      .layout-opts { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     LOADING
+════════════════════════════════════════════════════════════ -->
+<div id="loading-screen">
+  <div class="loading-heart">♥</div>
+  <div class="loading-title">Nosso Álbum</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     LOGIN
+════════════════════════════════════════════════════════════ -->
+<section id="login-screen">
+  <div class="login-bg-glow"></div>
+  <div class="bg-photos">
+    <div class="bg-pol bp1"></div>
+    <div class="bg-pol bp2"></div>
+    <div class="bg-pol bp3"></div>
+    <div class="bg-pol bp4"></div>
+    <div class="bg-pol bp5"></div>
+    <div class="bg-pol bp6"></div>
+  </div>
+
+  <div class="login-card">
+    <span class="login-floral">❦</span>
+    <h1 class="login-title">Nosso Álbum</h1>
+    <p class="login-sub">um tesouro só nosso</p>
+    <div class="login-rule"></div>
+
+    <input type="password" class="login-input" id="password-input"
+           placeholder="senha..."
+           onkeydown="if(event.key==='Enter') checkLogin()">
+
+    <button class="login-btn" onclick="checkLogin()">Abrir o álbum &nbsp;♥</button>
+    <p class="login-error" id="login-error"></p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     ALBUM
+════════════════════════════════════════════════════════════ -->
+<section id="album-screen">
+  <div class="album-header">
+    <span class="ah-title" id="ah-title">Nosso Álbum</span>
+    <div class="ah-actions">
+      <button class="ah-btn" onclick="openAddPageModal()">+ Página</button>
+      <button class="ah-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div id="book-wrapper">
+    <div id="book"><!-- páginas renderizadas por JS --></div>
+  </div>
+
+  <div id="book-nav">
+    <button class="nav-btn" id="btn-prev" onclick="flipPrev()" disabled>&#8249;</button>
+    <span id="page-counter"></span>
+    <button class="nav-btn" id="btn-next" onclick="flipNext()">&#8250;</button>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     TOAST
+════════════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     CONFIRM DIALOG
+════════════════════════════════════════════════════════════ -->
+<div class="confirm-box" id="confirm-box">
+  <div class="confirm-inner">
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-btns">
+      <button class="m-btn" id="confirm-ok">Confirmar</button>
+      <button class="m-btn-ghost" onclick="closeConfirm()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL: ADICIONAR PÁGINA
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add-page">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-add-page')">✕</button>
+    <div class="modal-title">Nova Página</div>
+    <div class="modal-sub">Escolha como ela vai se parecer</div>
+
+    <div class="layout-opts" id="add-layout-opts">
+      <div class="layout-opt sel" data-layout="single" onclick="pickNewLayout('single')">
+        <div class="lo-icon lo-icon-single">
+          <div class="lo-cell" style="width:44px;height:44px;"></div>
+        </div>
+        <div class="lo-name">1 Foto</div>
+      </div>
+      <div class="layout-opt" data-layout="quad" onclick="pickNewLayout('quad')">
+        <div class="lo-icon lo-icon-quad">
+          <div class="lo-cell"></div><div class="lo-cell"></div>
+          <div class="lo-cell"></div><div class="lo-cell"></div>
+        </div>
+        <div class="lo-name">4 Fotos</div>
+      </div>
+      <div class="layout-opt" data-layout="special" onclick="pickNewLayout('special')">
+        <div class="lo-icon" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;font-size:1.6rem;color:var(--gold);">★</div>
+        <div class="lo-name">Especial</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="m-btn" onclick="confirmAddPage()">Adicionar ♥</button>
+      <button class="m-btn-ghost" onclick="closeModal('modal-add-page')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL: ALTERAR LAYOUT
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-change-layout">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-change-layout')">✕</button>
+    <div class="modal-title">Configurar Página</div>
+    <div class="modal-sub">Esta página está vazia — você pode alterá-la</div>
+
+    <div class="layout-opts" id="change-layout-opts">
+      <div class="layout-opt" data-layout="single" onclick="pickChangeLayout('single')">
+        <div class="lo-icon lo-icon-single">
+          <div class="lo-cell" style="width:44px;height:44px;"></div>
+        </div>
+        <div class="lo-name">1 Foto</div>
+      </div>
+      <div class="layout-opt" data-layout="quad" onclick="pickChangeLayout('quad')">
+        <div class="lo-icon lo-icon-quad">
+          <div class="lo-cell"></div><div class="lo-cell"></div>
+          <div class="lo-cell"></div><div class="lo-cell"></div>
+        </div>
+        <div class="lo-name">4 Fotos</div>
+      </div>
+      <div class="layout-opt" data-layout="special" onclick="pickChangeLayout('special')">
+        <div class="lo-icon" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;font-size:1.6rem;color:var(--gold);">★</div>
+        <div class="lo-name">Especial</div>
+      </div>
+    </div>
+
+    <div class="btn-row-space">
+      <div class="btn-row">
+        <button class="m-btn" onclick="confirmChangeLayout()">Alterar</button>
+        <button class="m-btn-ghost" onclick="closeModal('modal-change-layout')">Cancelar</button>
+      </div>
+      <button class="m-btn-danger" onclick="confirmDeletePage()">🗑 Excluir página</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL: UPLOAD DE MÍDIA
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-upload">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-upload')">✕</button>
+    <div class="modal-title">Guardar Memória</div>
+    <div class="modal-sub">Foto ou vídeo para o álbum</div>
+
+    <div class="upload-drop" id="upload-drop" onclick="triggerUpload()">
+      <div class="upload-drop-icon">📷</div>
+      <div class="upload-drop-text">Clique para escolher</div>
+      <div class="upload-drop-sub">Foto ou vídeo (via Cloudinary)</div>
+    </div>
+
+    <div class="upload-preview" id="upload-preview">
+      <img id="preview-img" src="" alt="">
+      <video id="preview-vid" controls></video>
+      <div class="upload-preview-label" id="preview-label"></div>
+    </div>
+
+    <!-- Fallback: URL manual -->
+    <div id="url-fallback" style="display:none; margin-bottom:14px;">
+      <label class="m-label">URL da imagem ou vídeo</label>
+      <input type="url" class="m-input" id="url-fallback-input"
+             placeholder="https://exemplo.com/foto.jpg"
+             oninput="previewUrl(this.value)">
+    </div>
+
+    <div>
+      <label class="m-label">Legenda</label>
+      <input type="text" class="m-input" id="upload-caption" placeholder="uma memória especial...">
+    </div>
+    <div>
+      <label class="m-label">Data do momento</label>
+      <input type="date" class="m-input" id="upload-date">
+    </div>
+
+    <div class="btn-row">
+      <button class="m-btn" onclick="saveSlot()">Guardar no álbum ♥</button>
+      <button class="m-btn-ghost" onclick="closeModal('modal-upload')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL: EDITAR PÁGINA ESPECIAL
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-special">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-special')">✕</button>
+    <div class="modal-title">Página Especial</div>
+    <div class="modal-sub">Personalize este marcador do álbum</div>
+
+    <label class="m-label">Título</label>
+    <input type="text" class="m-input" id="sp-title" placeholder="Nosso Aniversário...">
+
+    <label class="m-label">Data</label>
+    <input type="date" class="m-input" id="sp-date">
+
+    <label class="m-label">Texto / Dedicatória</label>
+    <textarea class="m-textarea" id="sp-text"
+      placeholder="Um momento especial que ficará para sempre em nossas memórias..."></textarea>
+
+    <div class="btn-row">
+      <button class="m-btn" onclick="saveSpecialPage()">Salvar ♥</button>
+      <button class="m-btn-ghost" onclick="closeModal('modal-special')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL: OPÇÕES DE SLOT (foto já adicionada)
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-slot-opts">
+  <div class="modal-box" style="max-width:340px;">
+    <button class="modal-close" onclick="closeModal('modal-slot-opts')">✕</button>
+    <div class="modal-title" style="font-size:1.4rem;">O que deseja?</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px;">
+      <button class="m-btn" onclick="replaceSlot()">🔄 Substituir foto/vídeo</button>
+      <button class="m-btn-ghost" style="margin-left:0;width:100%;text-align:center;" onclick="editCaption()">✏️ Editar legenda</button>
+      <button class="m-btn-danger" onclick="clearSlot()">🗑 Remover desta posição</button>
+    </div>
+    <button class="m-btn-ghost" style="margin-left:0;margin-top:12px;width:100%;text-align:center;" onclick="closeModal('modal-slot-opts')">Fechar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL: EDITAR LEGENDA
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-caption">
+  <div class="modal-box" style="max-width:380px;">
+    <button class="modal-close" onclick="closeModal('modal-caption')">✕</button>
+    <div class="modal-title" style="font-size:1.4rem;">Editar Legenda</div>
+    <div class="modal-sub">O que aconteceu neste momento?</div>
+    <label class="m-label">Legenda</label>
+    <input type="text" class="m-input" id="caption-input" placeholder="uma memória especial...">
+    <label class="m-label">Data</label>
+    <input type="date" class="m-input" id="caption-date-input">
+    <div class="btn-row">
+      <button class="m-btn" onclick="saveCaptionEdit()">Salvar</button>
+      <button class="m-btn-ghost" onclick="closeModal('modal-caption')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════ -->
+
+<!-- Firebase Compat SDK v9 -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Cloudinary Upload Widget -->
+<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+
+<!-- StPageFlip -->
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ⚙️  CONFIG — PREENCHA ANTES DE USAR
+   ═══════════════════════════════════════════════════════════════
+
+   1. SENHA: altere CONFIG.password para a senha da sua família.
+      (ela fica salva no código — não compartilhe o repositório publicamente)
+
+   2. FIREBASE:
+      a) Acesse https://console.firebase.google.com
+      b) Crie um projeto (plano Spark = gratuito)
+      c) Clique em "Firestore Database" → criar banco (modo de teste)
+      d) Vá em Configurações do projeto → Seus apps → Web → copie os dados abaixo
+
+   3. CLOUDINARY:
+      a) Crie conta gratuita em https://cloudinary.com (25 GB)
+      b) Vá em Settings → Upload → Add upload preset
+      c) Marque "Unsigned" e salve
+      d) Copie o Cloud Name e o nome do preset abaixo
+
+   ═══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+
+  password:    'familia',              // ← MUDE AQUI
+  albumTitle:  'Nossa Família',        // ← nome na capa
+  albumSub:    'momentos que ficam',   // ← subtítulo na capa
+
+  firebase: {
+    apiKey:            'SUA_API_KEY',
+    authDomain:        'seu-projeto.firebaseapp.com',
+    projectId:         'seu-projeto-id',
+    storageBucket:     'seu-projeto.appspot.com',
+    messagingSenderId: '000000000000',
+    appId:             '1:000000000000:web:abcdefabcdef'
+  },
+
+  cloudinary: {
+    cloudName:    'seu-cloud-name',    // ← ex: 'familia-album'
+    uploadPreset: 'seu-preset',        // ← preset unsigned criado no Cloudinary
+  }
+};
+
+
+/* ═══════════════════════════════════════════════════════════════
+   APP STATE
+   ═══════════════════════════════════════════════════════════════ */
+let db         = null;
+let pageFlip   = null;
+let pages      = [];
+
+// Contexto de operação pendente
+let ctx = {
+  upload:  null,   // { pageId, slotIndex }
+  change:  null,   // { pageId }
+  slot:    null,   // { pageId, slotIndex }
+  special: null,   // pageId
+};
+
+let chosenNewLayout    = 'single';
+let chosenChangeLayout = 'single';
+
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════════════════════════ */
+function checkLogin() {
+  const inp = document.getElementById('password-input');
+  if (inp.value === CONFIG.password) {
+    sessionStorage.setItem('album_ok', '1');
+    const ls = document.getElementById('login-screen');
+    ls.style.transition = 'opacity 0.5s';
+    ls.style.opacity = '0';
+    setTimeout(() => {
+      ls.style.display = 'none';
+      startAlbum();
+    }, 500);
+  } else {
+    document.getElementById('login-error').textContent = '✦ senha incorreta';
+    inp.value = '';
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+  }
+}
+
+function doLogout() {
+  showConfirm('Deseja sair do álbum?', () => {
+    sessionStorage.removeItem('album_ok');
+    location.reload();
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE
+   ═══════════════════════════════════════════════════════════════ */
+function initFirebase() {
+  try {
+    firebase.initializeApp(CONFIG.firebase);
+    db = firebase.firestore();
+    return true;
+  } catch (e) {
+    console.warn('Firebase init failed — modo demo:', e);
+    return false;
+  }
+}
+
+async function loadPages() {
+  if (!db) { pages = demoPages(); return; }
+  try {
+    const snap = await db.collection('pages').orderBy('order').get();
+    pages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (pages.length === 0) {
+      pages = demoPages();
+      await saveBatch(pages);
+    }
+  } catch (e) {
+    console.warn('Firestore load error — modo demo:', e);
+    pages = demoPages();
+  }
+}
+
+async function saveBatch(arr) {
+  if (!db) return;
+  const b = db.batch();
+  arr.forEach(p => b.set(db.collection('pages').doc(p.id), p));
+  await b.commit().catch(e => console.warn('Batch save error:', e));
+}
+
+async function savePage(page) {
+  if (!db) return;
+  try {
+    await db.collection('pages').doc(page.id).set(page, { merge: true });
+  } catch (e) { toast('Erro ao salvar. Verifique sua conexão.'); }
+}
+
+async function deletePage(id) {
+  pages = pages.filter(p => p.id !== id);
+  if (!db) return;
+  try { await db.collection('pages').doc(id).delete(); }
+  catch (e) { console.warn('Delete error:', e); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   DEMO DATA (primeiro uso / sem Firebase)
+   ═══════════════════════════════════════════════════════════════ */
+function demoPages() {
+  return [
+    { id:'cover',      order:0,    layout:'cover',      title: CONFIG.albumTitle, subtitle: CONFIG.albumSub,  slots:[] },
+    { id:'page_1',     order:1,    layout:'single',     title:'', date:'', summary:'', slots:[emptySlot()] },
+    { id:'page_2',     order:2,    layout:'quad',       title:'', date:'', summary:'', slots:[emptySlot(),emptySlot(),emptySlot(),emptySlot()] },
+    { id:'back_cover', order:9999, layout:'back_cover', slots:[] },
+  ];
+}
+
+function emptySlot() { return { mediaUrl: null, mediaType: null, caption: '', date: '' }; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CLOUDINARY UPLOAD
+   ═══════════════════════════════════════════════════════════════ */
+let cwWidget = null;
+
+function getWidget() {
+  if (cwWidget) return cwWidget;
+  try {
+    cwWidget = cloudinary.createUploadWidget({
+      cloudName:    CONFIG.cloudinary.cloudName,
+      uploadPreset: CONFIG.cloudinary.uploadPreset,
+      sources: ['local', 'camera'],
+      multiple: false,
+      maxFileSize: 100000000,
+      resourceType: 'auto',
+      clientAllowedFormats: ['jpg','jpeg','png','gif','webp','mp4','mov','avi','heic'],
+      styles: {
+        palette: {
+          window: '#fdf6e3', sourceBg: '#fff8e7', windowBorder: '#c9a84c',
+          tabIcon: '#5c3317', inactiveTabIcon: '#9a7050',
+          menuIcons: '#5c3317', link: '#5c3317', action: '#5c3317',
+          inProgress: '#c9a84c', complete: '#5c3317',
+          error: '#c0392b', textDark: '#2c1810', textLight: '#fdf6e3'
+        }
+      }
+    }, (err, result) => {
+      if (!err && result && result.event === 'success') {
+        const i = result.info;
+        setPendingMedia(i.secure_url, i.resource_type === 'video' ? 'video' : 'image');
+      }
+    });
+  } catch (e) { return null; }
+  return cwWidget;
+}
+
+function triggerUpload() {
+  const w = getWidget();
+  if (w) {
+    w.open();
+  } else {
+    // Fallback URL input
+    document.getElementById('upload-drop').style.display = 'none';
+    document.getElementById('url-fallback').style.display = 'block';
+  }
+}
+
+function setPendingMedia(url, type) {
+  if (!ctx.upload) return;
+  ctx.upload.mediaUrl   = url;
+  ctx.upload.mediaType  = type;
+
+  const preview = document.getElementById('upload-preview');
+  const img = document.getElementById('preview-img');
+  const vid = document.getElementById('preview-vid');
+  preview.style.display = 'block';
+  document.getElementById('upload-drop').style.display = 'none';
+
+  if (type === 'video') {
+    img.style.display = 'none'; vid.style.display = 'block'; vid.src = url;
+  } else {
+    vid.style.display = 'none'; img.style.display = 'block'; img.src = url;
+  }
+  document.getElementById('preview-label').textContent = '✓ Mídia carregada';
+  toast('Mídia pronta! Adicione uma legenda ♥');
+}
+
+function previewUrl(url) {
+  if (!url) return;
+  const type = /\.(mp4|mov|avi|webm)(\?|$)/i.test(url) ? 'video' : 'image';
+  setPendingMedia(url, type);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER PAGES
+   ═══════════════════════════════════════════════════════════════ */
+const TAPES  = ['tape-c', 'tape-tl', 'tape-tr', 'tape-cl', 'tape-c'];
+const ROTS   = [
+  'style="transform:rotate(-2deg)"',
+  'style="transform:rotate(1.5deg)"',
+  'style="transform:rotate(-1deg)"',
+  'style="transform:rotate(2.5deg)"'
+];
+
+function renderAll() {
+  const book = document.getElementById('book');
+  book.innerHTML = '';
+  pages.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'page';
+    div.dataset.pageId = p.id;
+
+    if      (p.layout === 'cover')      { div.classList.add('page-cover');      div.innerHTML = htmlCover(p); }
+    else if (p.layout === 'back_cover') { div.classList.add('page-back-cover'); div.innerHTML = htmlBackCover(); }
+    else if (p.layout === 'special')    { div.innerHTML = htmlSpecial(p); }
+    else                                { div.innerHTML = htmlContent(p); }
+
+    book.appendChild(div);
+  });
+}
+
+function htmlCover(p) {
+  return `
+    <div class="cover-texture"></div>
+    <div class="cover-border-outer"></div>
+    <div class="cover-border-inner"></div>
+    <div class="cover-content">
+      <span class="cover-floral">❦</span>
+      <div class="cover-title">${esc(p.title || CONFIG.albumTitle)}</div>
+      <div class="cover-rule"></div>
+      <div class="cover-subtitle">${esc(p.subtitle || CONFIG.albumSub)}</div>
+    </div>
+  `;
+}
+
+function htmlBackCover() {
+  return `
+    <div style="display:flex;align-items:center;justify-content:center;height:100%;">
+      <div style="text-align:center;opacity:0.22;">
+        <div style="font-size:3rem;color:var(--gold-light);">♥</div>
+        <div style="font-family:'Playfair Display',serif;font-style:italic;color:var(--gold-light);font-size:1.2rem;margin-top:8px;">
+          Feito com amor
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function htmlSpecial(p) {
+  const isNew = !p.title && !p.summary;
+  const hasMeta = !!(p.title || p.summary);
+
+  return `
+    ${isNew ? `<button class="layout-cfg-btn" onclick="openChangeLayout('${p.id}')">⚙</button>` : ''}
+    <div class="page-texture"></div>
+    <div class="pc-tl page-corner"></div><div class="pc-tr page-corner"></div>
+    <div class="pc-bl page-corner"></div><div class="pc-br page-corner"></div>
+    <div class="special-inner" onclick="openSpecialModal('${p.id}')">
+      <div class="special-ornament">❦</div>
+      <div class="special-title">${esc(p.title) || '<span style="opacity:.3;font-style:italic;font-size:1.1rem;">Toque para personalizar</span>'}</div>
+      ${p.date ? `<div class="special-date">${fmtDate(p.date)}</div>` : ''}
+      <div class="special-rule"></div>
+      <div class="special-text">${esc(p.summary || '')}</div>
+      ${isNew ? `<div class="special-hint">Clique para editar</div>` : ''}
+    </div>
+  `;
+}
+
+function htmlContent(p) {
+  const layout = p.layout || 'single';
+  const numSlots = layout === 'quad' ? 4 : 1;
+  const slots = ensureSlots(p.slots, numSlots);
+  const allEmpty = slots.every(s => !s.mediaUrl);
+
+  const pageNum = p.order || '';
+
+  return `
+    ${allEmpty ? `<button class="layout-cfg-btn" onclick="openChangeLayout('${p.id}')">⚙</button>` : ''}
+    <div class="page-texture"></div>
+    <div class="pc-tl page-corner"></div><div class="pc-tr page-corner"></div>
+    <div class="pc-bl page-corner"></div><div class="pc-br page-corner"></div>
+
+    <div class="page-inner">
+      ${(p.date || p.summary) ? `
+        <div class="page-meta">
+          ${p.date ? `<div class="page-meta-date">${fmtDate(p.date)}</div>` : ''}
+          ${p.summary ? `<div class="page-meta-summary">${esc(p.summary)}</div>` : ''}
+        </div>
+      ` : ''}
+
+      <div class="slots-${layout}">
+        ${ slots.map((slot, i) => htmlSlot(p.id, slot, i, layout)).join('') }
+      </div>
+    </div>
+
+    ${pageNum ? `<div class="page-num page-num-${p.order % 2 === 0 ? 'r' : 'l'}">${pageNum}</div>` : ''}
+  `;
+}
+
+function htmlSlot(pageId, slot, i, layout) {
+  const tape = TAPES[i % TAPES.length];
+  const rot  = ROTS[i % ROTS.length];
+  const isSingle = layout === 'single';
+  const wrapStyle = isSingle
+    ? 'style="width:min(85%,220px);max-width:220px;"'
+    : '';
+
+  if (slot.mediaUrl) {
+    const media = slot.mediaType === 'video'
+      ? `<div class="pol-video-wrap">
+           <video class="pol-video" src="${slot.mediaUrl}" playsinline></video>
+           <div class="pol-play-overlay" onclick="event.stopPropagation(); playVid(this)">
+             <div class="pol-play-btn">▶</div>
+           </div>
+         </div>`
+      : `<img class="pol-media" src="${slot.mediaUrl}" alt="${esc(slot.caption)}" loading="lazy">`;
+
+    return `
+      <div class="polaroid ${tape}" ${rot} ${wrapStyle}
+           onclick="openSlotOpts('${pageId}', ${i})">
+        ${media}
+        <div class="pol-caption">${esc(slot.caption) || '&nbsp;'}</div>
+      </div>
+    `;
+  } else {
+    return `
+      <div class="slot-empty" ${wrapStyle} onclick="openUpload('${pageId}', ${i})">
+        <div class="slot-ph">
+          <div class="slot-ph-icon">📷</div>
+          <div class="slot-ph-text">adicionar</div>
+        </div>
+        <div class="slot-empty-cap"></div>
+      </div>
+    `;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE FLIP
+   ═══════════════════════════════════════════════════════════════ */
+function calcFlipDims() {
+  const wrap = document.getElementById('book-wrapper');
+  const avW  = (wrap.offsetWidth - 40) / 2;
+  const avH  = wrap.offsetHeight - 16;
+  const ratio = 1.35;
+
+  let w = Math.min(avW, 480);
+  let h = w * ratio;
+  if (h > avH) { h = avH; w = h / ratio; }
+
+  w = Math.max(Math.floor(w), 200);
+  h = Math.max(Math.floor(h), 280);
+  return { w, h };
+}
+
+function initFlip() {
+  if (pageFlip) { try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
+
+  const { w, h } = calcFlipDims();
+  const isMobile = window.innerWidth < 700;
+  const pageEls = document.querySelectorAll('#book .page');
+  if (!pageEls.length) return;
+
+  try {
+    pageFlip = new St.PageFlip(document.getElementById('book'), {
+      width:              w,
+      height:             h,
+      size:               'fixed',
+      minWidth:           180,
+      maxWidth:           520,
+      minHeight:          240,
+      maxHeight:          720,
+      drawShadow:         true,
+      flippingTime:       950,
+      usePortrait:        isMobile,
+      autoSize:           true,
+      maxShadowOpacity:   0.65,
+      showCover:          true,
+      mobileScrollSupport: false,
+      clickEventForward:  false,
+      useMouseEvents:     true,
+      swipeDistance:      25,
+      showPageCorners:    !isMobile,
+      disableFlipByClick: false,
+    });
+
+    pageFlip.loadFromHTML(pageEls);
+    pageFlip.on('flip',        updateNav);
+    pageFlip.on('changeState', updateNav);
+    updateNav();
+  } catch (e) {
+    console.error('PageFlip error:', e);
+  }
+}
+
+function flipPrev() { if (pageFlip) pageFlip.flipPrev(); }
+function flipNext() { if (pageFlip) pageFlip.flipNext(); }
+
+function updateNav() {
+  if (!pageFlip) return;
+  const cur   = pageFlip.getCurrentPageIndex();
+  const total = pageFlip.getPageCount();
+  document.getElementById('page-counter').textContent = `${cur + 1} / ${total}`;
+  document.getElementById('btn-prev').disabled = cur <= 0;
+  document.getElementById('btn-next').disabled = cur >= total - 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   REFRESH (re-render + re-init pageflip)
+   ═══════════════════════════════════════════════════════════════ */
+async function refresh(goToLast = false) {
+  const curPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
+  renderAll();
+  await sleep(80);
+  initFlip();
+  await sleep(100);
+  if (goToLast) {
+    const backIdx = pages.findIndex(p => p.layout === 'back_cover');
+    const target  = backIdx > 1 ? backIdx - 1 : pages.length - 2;
+    if (pageFlip && target > 0) pageFlip.turnToPage(target);
+  } else {
+    if (pageFlip && curPage > 0) pageFlip.turnToPage(curPage);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL: ADICIONAR PÁGINA
+   ═══════════════════════════════════════════════════════════════ */
+function openAddPageModal() {
+  chosenNewLayout = 'single';
+  syncLayoutOpts('add-layout-opts', 'single');
+  openModal('modal-add-page');
+}
+
+function pickNewLayout(l) {
+  chosenNewLayout = l;
+  syncLayoutOpts('add-layout-opts', l);
+}
+
+async function confirmAddPage() {
+  closeModal('modal-add-page');
+  const layout    = chosenNewLayout;
+  const numSlots  = layout === 'quad' ? 4 : layout === 'single' ? 1 : 0;
+  const maxOrder  = Math.max(...pages.filter(p => !['cover','back_cover'].includes(p.layout)).map(p => p.order || 0), 0);
+  const newPage   = {
+    id:      `page_${Date.now()}`,
+    order:   maxOrder + 1,
+    layout,
+    title:   '',
+    date:    '',
+    summary: '',
+    slots:   Array(numSlots).fill(null).map(emptySlot)
+  };
+
+  const bcIdx = pages.findIndex(p => p.layout === 'back_cover');
+  if (bcIdx === -1) pages.push(newPage);
+  else pages.splice(bcIdx, 0, newPage);
+
+  await savePage(newPage);
+  await refresh(true);
+  toast('Nova página adicionada ♥');
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL: ALTERAR LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+function openChangeLayout(pageId) {
+  const pg = pages.find(p => p.id === pageId);
+  if (!pg) return;
+
+  const isEmpty = pg.layout === 'special'
+    ? (!pg.title && !pg.summary)
+    : (pg.slots || []).every(s => !s.mediaUrl);
+
+  if (!isEmpty) {
+    toast('Remova as fotos/vídeos antes de alterar o layout');
+    return;
+  }
+
+  ctx.change = { pageId };
+  chosenChangeLayout = pg.layout;
+  syncLayoutOpts('change-layout-opts', pg.layout);
+  openModal('modal-change-layout');
+}
+
+function pickChangeLayout(l) {
+  chosenChangeLayout = l;
+  syncLayoutOpts('change-layout-opts', l);
+}
+
+async function confirmChangeLayout() {
+  if (!ctx.change) return;
+  const { pageId } = ctx.change;
+  const pgIdx = pages.findIndex(p => p.id === pageId);
+  if (pgIdx === -1) return;
+
+  const numSlots = chosenChangeLayout === 'quad' ? 4 : chosenChangeLayout === 'single' ? 1 : 0;
+  pages[pgIdx].layout = chosenChangeLayout;
+  pages[pgIdx].slots  = Array(numSlots).fill(null).map(emptySlot);
+  if (chosenChangeLayout === 'special') { pages[pgIdx].title = ''; pages[pgIdx].summary = ''; }
+
+  await savePage(pages[pgIdx]);
+  closeModal('modal-change-layout');
+  await refresh();
+  toast('Layout alterado ✓');
+}
+
+function confirmDeletePage() {
+  if (!ctx.change) return;
+  closeModal('modal-change-layout');
+  showConfirm('Excluir esta página permanentemente?', async () => {
+    await deletePage(ctx.change.pageId);
+    await refresh();
+    toast('Página excluída');
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL: UPLOAD
+   ═══════════════════════════════════════════════════════════════ */
+function openUpload(pageId, slotIndex) {
+  ctx.upload = { pageId, slotIndex, mediaUrl: null, mediaType: null };
+
+  // Reset modal
+  document.getElementById('upload-drop').style.display  = 'block';
+  document.getElementById('url-fallback').style.display = 'none';
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('preview-img').src = '';
+  document.getElementById('preview-vid').src = '';
+  document.getElementById('upload-caption').value = '';
+  document.getElementById('upload-date').value = '';
+  document.getElementById('url-fallback-input').value = '';
+
+  openModal('modal-upload');
+}
+
+async function saveSlot() {
+  // Check URL fallback
+  const urlIn = document.getElementById('url-fallback-input');
+  if (!ctx.upload.mediaUrl && urlIn.value) {
+    previewUrl(urlIn.value);
+    await sleep(100);
+  }
+
+  if (!ctx.upload || !ctx.upload.mediaUrl) {
+    toast('Adicione uma foto ou vídeo primeiro');
+    return;
+  }
+
+  const { pageId, slotIndex, mediaUrl, mediaType } = ctx.upload;
+  const caption = document.getElementById('upload-caption').value.trim();
+  const date    = document.getElementById('upload-date').value;
+
+  const pgIdx = pages.findIndex(p => p.id === pageId);
+  if (pgIdx === -1) return;
+
+  pages[pgIdx].slots[slotIndex] = { mediaUrl, mediaType, caption, date };
+  if (!pages[pgIdx].date && date) pages[pgIdx].date = date;
+
+  await savePage(pages[pgIdx]);
+  closeModal('modal-upload');
+  await refresh();
+  toast('Memória guardada ♥');
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL: OPÇÕES DO SLOT PREENCHIDO
+   ═══════════════════════════════════════════════════════════════ */
+function openSlotOpts(pageId, slotIndex) {
+  ctx.slot = { pageId, slotIndex };
+  openModal('modal-slot-opts');
+}
+
+function replaceSlot() {
+  if (!ctx.slot) return;
+  closeModal('modal-slot-opts');
+  openUpload(ctx.slot.pageId, ctx.slot.slotIndex);
+}
+
+function editCaption() {
+  if (!ctx.slot) return;
+  const pg   = pages.find(p => p.id === ctx.slot.pageId);
+  const slot = pg?.slots?.[ctx.slot.slotIndex];
+  if (!slot) return;
+
+  document.getElementById('caption-input').value      = slot.caption || '';
+  document.getElementById('caption-date-input').value = slot.date || '';
+  closeModal('modal-slot-opts');
+  openModal('modal-caption');
+}
+
+async function saveCaptionEdit() {
+  if (!ctx.slot) return;
+  const pgIdx = pages.findIndex(p => p.id === ctx.slot.pageId);
+  if (pgIdx === -1) return;
+
+  pages[pgIdx].slots[ctx.slot.slotIndex].caption = document.getElementById('caption-input').value.trim();
+  pages[pgIdx].slots[ctx.slot.slotIndex].date    = document.getElementById('caption-date-input').value;
+
+  await savePage(pages[pgIdx]);
+  closeModal('modal-caption');
+  await refresh();
+  toast('Legenda salva ✓');
+}
+
+async function clearSlot() {
+  if (!ctx.slot) return;
+  closeModal('modal-slot-opts');
+  showConfirm('Remover esta foto/vídeo?', async () => {
+    const pgIdx = pages.findIndex(p => p.id === ctx.slot.pageId);
+    if (pgIdx === -1) return;
+    pages[pgIdx].slots[ctx.slot.slotIndex] = emptySlot();
+    await savePage(pages[pgIdx]);
+    await refresh();
+    toast('Foto removida');
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL: PÁGINA ESPECIAL
+   ═══════════════════════════════════════════════════════════════ */
+function openSpecialModal(pageId) {
+  const pg = pages.find(p => p.id === pageId);
+  if (!pg) return;
+  ctx.special = pageId;
+
+  document.getElementById('sp-title').value = pg.title   || '';
+  document.getElementById('sp-date').value  = pg.date    || '';
+  document.getElementById('sp-text').value  = pg.summary || '';
+  openModal('modal-special');
+}
+
+async function saveSpecialPage() {
+  if (!ctx.special) return;
+  const pgIdx = pages.findIndex(p => p.id === ctx.special);
+  if (pgIdx === -1) return;
+
+  pages[pgIdx].title   = document.getElementById('sp-title').value.trim();
+  pages[pgIdx].date    = document.getElementById('sp-date').value;
+  pages[pgIdx].summary = document.getElementById('sp-text').value.trim();
+
+  await savePage(pages[pgIdx]);
+  closeModal('modal-special');
+  await refresh();
+  toast('Página especial salva ♥');
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITÁRIOS
+   ═══════════════════════════════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function syncLayoutOpts(containerId, selected) {
+  document.querySelectorAll(`#${containerId} .layout-opt`).forEach(el => {
+    el.classList.toggle('sel', el.dataset.layout === selected);
+  });
+}
+
+function ensureSlots(slots, n) {
+  const arr = [...(slots || [])];
+  while (arr.length < n) arr.push(emptySlot());
+  return arr.slice(0, n);
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  try {
+    const [y,m,d] = str.split('-');
+    const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    return `${d} de ${months[+m-1]} de ${y}`;
+  } catch { return str; }
+}
+
+function esc(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _toastTimer;
+function toast(msg, ms = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function showConfirm(msg, onOk) {
+  document.getElementById('confirm-msg').textContent = msg;
+  const box = document.getElementById('confirm-box');
+  box.classList.add('open');
+  const btn = document.getElementById('confirm-ok');
+  btn.onclick = () => { box.classList.remove('open'); onOk(); };
+}
+function closeConfirm() { document.getElementById('confirm-box').classList.remove('open'); }
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function playVid(overlay) {
+  const vid = overlay.parentElement.querySelector('video');
+  vid.play();
+  overlay.style.display = 'none';
+  vid.addEventListener('ended', () => { overlay.style.display = 'flex'; }, { once: true });
+}
+
+// Close modals on background click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// Resize handler
+let _resizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeT);
+  _resizeT = setTimeout(() => {
+    if (document.getElementById('album-screen').style.display !== 'none') refresh();
+  }, 350);
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+async function startAlbum() {
+  document.getElementById('ah-title').textContent = CONFIG.albumTitle;
+  const albumScreen = document.getElementById('album-screen');
+  albumScreen.style.display = 'flex';
+  albumScreen.style.opacity = '0';
+  albumScreen.style.transition = 'opacity 0.6s';
+
+  initFirebase();
+  await loadPages();
+  renderAll();
+  await sleep(120);
+  initFlip();
+  await sleep(200);
+  albumScreen.style.opacity = '1';
+}
+
+window.addEventListener('load', () => {
+  setTimeout(async () => {
+    const loading = document.getElementById('loading-screen');
+    loading.classList.add('fade-out');
+    await sleep(700);
+    loading.style.display = 'none';
+
+    if (sessionStorage.getItem('album_ok')) {
+      await startAlbum();
+    } else {
+      const ls = document.getElementById('login-screen');
+      ls.style.display = 'flex';
+      ls.style.opacity = '0';
+      ls.style.transition = 'opacity 0.5s';
+      await sleep(50);
+      ls.style.opacity = '1';
+      setTimeout(() => document.getElementById('password-input').focus(), 600);
+    }
+  }, 1400);
+});
+</script>
+</body>
+</html>
