@@ -1503,27 +1503,41 @@ function calcFlipDims() {
   return { w, h };
 }
 
+let _flipScheduled = false;
+
 function initFlip() {
+  // Destrói instância anterior
   if (pageFlip) { try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
 
-  // Duplo requestAnimationFrame: garante que o layout já foi calculado
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  // Evita chamadas duplicadas (race condition)
+  if (_flipScheduled) return;
+  _flipScheduled = true;
+
+  // Um único RAF para aguardar o layout
+  requestAnimationFrame(() => {
+    _flipScheduled = false;
     _doInitFlip();
-  }));
+  });
 }
 
 function _doInitFlip() {
+  // Busca páginas DIRETO do #book (antes do PageFlip movê-las)
+  const bookEl  = document.getElementById('book');
+  const pageEls = bookEl.querySelectorAll('.page');
+  if (!pageEls.length) {
+    console.warn('[Album] _doInitFlip: nenhuma .page em #book');
+    return;
+  }
+
   const { w, h } = calcFlipDims();
   const isMobile = window.innerWidth < 700;
-  const pageEls = document.querySelectorAll('#book .page');
-  if (!pageEls.length) { console.warn('[Album] Nenhuma pagina encontrada'); return; }
+  const bookW    = isMobile ? w : w * 2;
 
-  // Define dimensões explícitas no container antes do PageFlip
-  const bookEl = document.getElementById('book');
-  const bookW  = isMobile ? w : w * 2;
-  bookEl.style.width  = bookW + 'px';
-  bookEl.style.height = h + 'px';
-  console.log('[Album] Inicializando PageFlip:', bookW, 'x', h, '| paginas:', pageEls.length);
+  // Dimensões explícitas antes de inicializar
+  bookEl.style.width    = bookW + 'px';
+  bookEl.style.height   = h + 'px';
+  bookEl.style.position = 'relative';
+  console.log('[Album] PageFlip:', bookW, 'x', h, '| paginas:', pageEls.length);
 
   try {
     pageFlip = new St.PageFlip(document.getElementById('book'), {
@@ -1575,10 +1589,12 @@ function updateNav() {
    ═══════════════════════════════════════════════════════════════ */
 async function refresh(goToLast = false) {
   const curPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
+  // Destrói antes de re-renderizar para evitar conflito
+  if (pageFlip) { try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
   renderAll();
-  await sleep(350);
+  await sleep(300);
   initFlip();
-  await sleep(500);
+  await sleep(600);
   if (goToLast) {
     const backIdx = pages.findIndex(p => p.layout === 'back_cover');
     const target  = backIdx > 1 ? backIdx - 1 : pages.length - 2;
@@ -1902,10 +1918,10 @@ async function startAlbum() {
   initFirebase();
   await loadPages();
   renderAll();
-  await sleep(400);
-  initFlip();
-  await sleep(700);
+  // Torna visível ANTES de inicializar o flipbook
   albumScreen.style.opacity = '1';
+  await sleep(300);
+  initFlip();
 }
 
 window.addEventListener('load', () => {
