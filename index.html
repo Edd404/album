@@ -1503,63 +1503,59 @@ function calcFlipDims() {
   return { w, h };
 }
 
-let _flipScheduled = false;
+/* ═══════════════════════════════════════════════════════════════
+   📐 FLIPBOOK  — inicialização robusta sem race condition
+   ═══════════════════════════════════════════════════════════════ */
+let _flipTimer = null;
 
+// Destrói e agenda nova inicialização (debounced, 50ms)
 function initFlip() {
-  // Destrói instância anterior
-  if (pageFlip) { try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
-
-  // Evita chamadas duplicadas (race condition)
-  if (_flipScheduled) return;
-  _flipScheduled = true;
-
-  // Um único RAF para aguardar o layout
-  requestAnimationFrame(() => {
-    _flipScheduled = false;
-    _doInitFlip();
-  });
+  clearTimeout(_flipTimer);
+  _flipTimer = setTimeout(_doInitFlip, 50);
 }
 
 function _doInitFlip() {
-  // Busca páginas DIRETO do #book (antes do PageFlip movê-las)
-  const bookEl  = document.getElementById('book');
-  const pageEls = bookEl.querySelectorAll('.page');
-  if (!pageEls.length) {
-    console.warn('[Album] _doInitFlip: nenhuma .page em #book');
-    return;
+  // 1. Destrói instância anterior
+  if (pageFlip) {
+    try { pageFlip.destroy(); } catch(e){}
+    pageFlip = null;
   }
 
+  // 2. Busca páginas renderizadas
+  const bookEl  = document.getElementById('book');
+  const pageEls = bookEl.querySelectorAll('.page');
+  if (!pageEls.length) { console.warn('[Album] sem paginas'); return; }
+
+  // 3. Calcula dimensões
   const { w, h } = calcFlipDims();
   const isMobile = window.innerWidth < 700;
   const bookW    = isMobile ? w : w * 2;
 
-  // Dimensões explícitas antes de inicializar
-  bookEl.style.width    = bookW + 'px';
-  bookEl.style.height   = h + 'px';
-  bookEl.style.position = 'relative';
-  console.log('[Album] PageFlip:', bookW, 'x', h, '| paginas:', pageEls.length);
+  // 4. Força dimensões no container
+  bookEl.style.cssText += `;width:${bookW}px;height:${h}px;position:relative;`;
+  console.log('[Album] init', bookW, 'x', h, '/', pageEls.length, 'pags');
 
+  // 5. Inicia PageFlip
   try {
-    pageFlip = new St.PageFlip(document.getElementById('book'), {
+    pageFlip = new St.PageFlip(bookEl, {
       width:              w,
       height:             h,
       size:               'fixed',
       minWidth:           180,
       maxWidth:           520,
       minHeight:          240,
-      maxHeight:          720,
+      maxHeight:          800,
       drawShadow:         true,
-      flippingTime:       950,
+      flippingTime:       900,
       usePortrait:        isMobile,
-      autoSize:           true,
-      maxShadowOpacity:   0.65,
+      autoSize:           false,
+      maxShadowOpacity:   0.6,
       showCover:          true,
       mobileScrollSupport: false,
       clickEventForward:  false,
       useMouseEvents:     true,
       swipeDistance:      25,
       showPageCorners:    !isMobile,
-      disableFlipByClick: false,
     });
 
     pageFlip.loadFromHTML(pageEls);
@@ -1589,12 +1585,9 @@ function updateNav() {
    ═══════════════════════════════════════════════════════════════ */
 async function refresh(goToLast = false) {
   const curPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
-  // Destrói antes de re-renderizar para evitar conflito
-  if (pageFlip) { try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
-  renderAll();
-  await sleep(300);
-  initFlip();
-  await sleep(600);
+  renderAll();      // re-popula #book com .page frescos
+  initFlip();       // debounced 50ms — destrói + recria
+  await sleep(400); // aguarda o debounce + PageFlip iniciar
   if (goToLast) {
     const backIdx = pages.findIndex(p => p.layout === 'back_cover');
     const target  = backIdx > 1 ? backIdx - 1 : pages.length - 2;
@@ -1918,10 +1911,8 @@ async function startAlbum() {
   initFirebase();
   await loadPages();
   renderAll();
-  // Torna visível ANTES de inicializar o flipbook
   albumScreen.style.opacity = '1';
-  await sleep(300);
-  initFlip();
+  initFlip();  // debounced 50ms
 }
 
 window.addEventListener('load', () => {
