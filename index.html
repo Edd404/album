@@ -63,10 +63,19 @@ html,body{height:100%;overflow:hidden;font-family:'Caveat',cursive;background:va
 }
 #book{
   position:relative;
+  transform-style:preserve-3d; /* CRITICAL para 3D funcionar */
   width:calc(var(--pw)*2);height:var(--ph);
   box-shadow:0 30px 80px rgba(0,0,0,.85),0 8px 24px rgba(0,0,0,.5);
   flex-shrink:0;
 }
+/* Sombra projetada pelas páginas em movimento */
+.pg-shadow{
+  position:absolute;top:0;width:var(--pw);height:var(--ph);
+  pointer-events:none;z-index:18;opacity:0;
+  transition:opacity .42s ease;
+}
+#sh-l{left:0;background:linear-gradient(to left,rgba(0,0,0,.28) 0%,transparent 75%)}
+#sh-r{left:var(--pw);background:linear-gradient(to right,rgba(0,0,0,.28) 0%,transparent 75%)}
 /* book pages: bg (under flipper) and fg (visible) */
 .book-half{position:absolute;top:0;width:var(--pw);height:var(--ph);overflow:hidden;background:var(--paper)}
 #bg-l,#fg-l{left:0}
@@ -77,39 +86,53 @@ html,body{height:100%;overflow:hidden;font-family:'Caveat',cursive;background:va
 #spine{position:absolute;left:calc(var(--pw) - 5px);top:0;width:10px;height:100%;
   background:linear-gradient(to right,rgba(0,0,0,.35),rgba(60,20,5,.15),rgba(0,0,0,.3));
   z-index:20;pointer-events:none}
-/* Forward flipper — covers right half, rotates around spine (left edge) */
+/* Forward flipper — cobre a página direita, gira em torno da lombada */
 #flip-fwd{
   position:absolute;top:0;left:var(--pw);width:var(--pw);height:var(--ph);
   transform-origin:left center;
   transform-style:preserve-3d;
-  z-index:15;display:none;
+  z-index:15;
+  visibility:hidden;      /* usa visibility p/ manter layout */
+  transform:rotateY(0deg);
+  transition:transform .85s cubic-bezier(.4,.1,.2,1);
 }
-/* Backward flipper — covers left half, rotates around spine (right edge) */
+#flip-fwd.flipping{ transform:rotateY(-180deg); }
+
+/* Backward flipper — cobre a página esquerda */
 #flip-bwd{
   position:absolute;top:0;left:0;width:var(--pw);height:var(--ph);
   transform-origin:right center;
   transform-style:preserve-3d;
-  z-index:15;display:none;
+  z-index:15;
+  visibility:hidden;
+  transform:rotateY(0deg);
+  transition:transform .85s cubic-bezier(.4,.1,.2,1);
 }
-.ff,.fb{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.fb{transform:rotateY(180deg)}
+#flip-bwd.flipping{ transform:rotateY(180deg); }
 
-/* flip animation classes */
-#flip-fwd.go{animation:gofwd var(--ft,.75s) ease forwards}
-#flip-bwd.go{animation:gobwd var(--ft,.75s) ease forwards}
-@keyframes gofwd{from{transform:rotateY(0)}to{transform:rotateY(-180deg)}}
-@keyframes gobwd{from{transform:rotateY(0)}to{transform:rotateY(180deg)}}
+/* Faces do flipper */
+.ff,.fb{
+  position:absolute;inset:0;overflow:hidden;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+.fb{ transform:rotateY(180deg); }
 
-/* Book page shadow (during flip) */
-#flip-fwd .ff::after,#flip-fwd .fb::after{
-  content:'';position:absolute;top:0;right:0;width:30px;height:100%;
-  background:linear-gradient(to right,transparent,rgba(0,0,0,.18));
-  pointer-events:none;z-index:1;
+/* Gradiente na dobra — simula espessura do papel */
+#flip-fwd .ff::after{
+  content:'';position:absolute;top:0;left:0;width:22px;height:100%;
+  background:linear-gradient(to right,rgba(0,0,0,.18),transparent);
+  pointer-events:none;z-index:5;
+}
+#flip-fwd .fb::after{
+  content:'';position:absolute;top:0;right:0;width:22px;height:100%;
+  background:linear-gradient(to left,rgba(0,0,0,.12),transparent);
+  pointer-events:none;z-index:5;
 }
 #flip-bwd .ff::after{
-  content:'';position:absolute;top:0;left:0;width:30px;height:100%;
-  background:linear-gradient(to left,transparent,rgba(0,0,0,.18));
-  pointer-events:none;z-index:1;
+  content:'';position:absolute;top:0;right:0;width:22px;height:100%;
+  background:linear-gradient(to left,rgba(0,0,0,.18),transparent);
+  pointer-events:none;z-index:5;
 }
 
 /* ── Nav ── */
@@ -260,10 +283,11 @@ html,body{height:100%;overflow:hidden;font-family:'Caveat',cursive;background:va
 
 /* Mobile */
 @media(max-width:700px){
-  :root{--pw:min(92vw,400px);--ph:calc(var(--pw)*1.38)}
+  :root{--pw:min(90vw,380px);--ph:calc(var(--pw)*1.4)}
   #book{width:var(--pw)!important}
-  #bg-r,#fg-r,#flip-bwd,#spine{display:none!important}
+  #bg-r,#fg-r,#flip-bwd,#spine,#sh-r{display:none!important}
   #flip-fwd{left:0!important;width:var(--pw)!important;transform-origin:left center}
+  #sh-l{width:var(--pw)!important}
   .lg-card{padding:34px 24px}
   .lg-title{font-size:2rem}
   .mb{padding:26px 20px}
@@ -320,6 +344,9 @@ html,body{height:100%;overflow:hidden;font-family:'Caveat',cursive;background:va
       <div class="book-half" id="fg-r"></div>
       <!-- Spine -->
       <div id="spine"></div>
+      <!-- Sombras de flip -->
+      <div class="pg-shadow" id="sh-l"></div>
+      <div class="pg-shadow" id="sh-r"></div>
       <!-- Forward flipper -->
       <div id="flip-fwd">
         <div class="ff" id="fwd-front"></div>
@@ -734,70 +761,102 @@ function updateNav(){
   document.getElementById('n-info').textContent=`${leftIdx+1} / ${pages.length}`;
 }
 
-function flipNext(){
-  if(isFlipping)return;
-  const mob=isMob();
-  const step=mob?1:2;
-  const maxL=mob?pages.length-1:pages.length-2;
-  if(leftIdx>=maxL)return;
+const FLIP_MS = 850; // duração da animação em ms
 
-  const nextL=leftIdx+step;
-  // Populate flipper faces
-  const flipEl=document.getElementById('flip-fwd');
-  const front=document.getElementById('fwd-front');
-  const back=document.getElementById('fwd-back');
-  // front = current right page (what's visible now on right)
-  renderPageInto(front, mob?pages[leftIdx]:(pages[leftIdx+1]||null));
-  // back = next left page (what will appear on left after flip)
-  renderPageInto(back, pages[nextL]||null);
-  // bg already has next spread
-  flipEl.style.display='block';
-  flipEl.style.animation='none';
-  void flipEl.offsetWidth; // reflow
-  isFlipping=true;
-  flipEl.style.setProperty('--ft','.75s');
-  flipEl.classList.add('go');
-  setTimeout(()=>{
-    leftIdx=nextL;
+function flipNext(){
+  if(isFlipping) return;
+  const mob  = isMob();
+  const step = mob ? 1 : 2;
+  const maxL = mob ? pages.length-1 : pages.length-2;
+  if(leftIdx >= maxL) return;
+
+  const nextL   = leftIdx + step;
+  const flipEl  = document.getElementById('flip-fwd');
+  const shL     = document.getElementById('sh-l');
+
+  // Faces do flipper:
+  // frente = página que está visível agora (direita ou única)
+  renderPageInto(document.getElementById('fwd-front'),
+    mob ? pages[leftIdx] : (pages[leftIdx+1]||null));
+  // verso = próxima página esquerda (revelada ao virar)
+  renderPageInto(document.getElementById('fwd-back'), pages[nextL]||null);
+
+  // Pré-renderiza o fundo com o próximo spread
+  renderPageInto(document.getElementById('bg-l'), pages[nextL]||null);
+  renderPageInto(document.getElementById('bg-r'),
+    mob ? null : (pages[nextL+1]||null));
+
+  // Reseta posição do flipper (sem transição)
+  flipEl.style.transition = 'none';
+  flipEl.style.transform  = 'rotateY(0deg)';
+  flipEl.style.visibility = 'visible';
+  void flipEl.offsetWidth; // força reflow
+
+  isFlipping = true;
+
+  // Inicia transição premium
+  flipEl.style.transition = `transform ${FLIP_MS}ms cubic-bezier(.4,.1,.2,1)`;
+  flipEl.style.transform  = 'rotateY(-180deg)';
+
+  // Sombra projetada na página esquerda durante o flip
+  shL.style.opacity = '0.9';
+  setTimeout(() => { shL.style.opacity = '0'; }, FLIP_MS * 0.5);
+
+  setTimeout(() => {
+    leftIdx = nextL;
     renderSpread();
-    flipEl.classList.remove('go');
-    flipEl.style.animation='none';
-    flipEl.style.display='none';
-    isFlipping=false;
-  },750);
+    // Reseta flipper sem animação
+    flipEl.style.transition = 'none';
+    flipEl.style.transform  = 'rotateY(0deg)';
+    flipEl.style.visibility = 'hidden';
+    setTimeout(() => { isFlipping = false; }, 40);
+  }, FLIP_MS);
 }
 
 function flipPrev(){
-  if(isFlipping)return;
-  const mob=isMob();
-  const step=mob?1:2;
-  if(leftIdx<=0)return;
+  if(isFlipping) return;
+  const mob  = isMob();
+  const step = mob ? 1 : 2;
+  if(leftIdx <= 0) return;
 
-  const prevL=leftIdx-step;
-  const flipEl=document.getElementById('flip-bwd');
-  const front=document.getElementById('bwd-front');
-  const back=document.getElementById('bwd-back');
-  // front = current left page
-  renderPageInto(front,pages[leftIdx]||null);
-  // back = prev right page
-  renderPageInto(back,mob?null:(pages[prevL+1]||null));
-  // set bg to prev spread
-  renderPageInto(document.getElementById('bg-l'),pages[prevL]||null);
-  renderPageInto(document.getElementById('bg-r'),mob?null:(pages[prevL+1]||null));
-  flipEl.style.display='block';
-  flipEl.style.animation='none';
+  const prevL  = leftIdx - step;
+  const flipEl = document.getElementById('flip-bwd');
+  const shR    = document.getElementById('sh-r');
+
+  // Faces:
+  // frente = página esquerda atual (que vai ser "virada de volta")
+  renderPageInto(document.getElementById('bwd-front'), pages[leftIdx]||null);
+  // verso = página direita anterior (que reaparece)
+  renderPageInto(document.getElementById('bwd-back'),
+    mob ? null : (pages[prevL+1]||null));
+
+  // Pré-renderiza fundo com spread anterior
+  renderPageInto(document.getElementById('bg-l'), pages[prevL]||null);
+  renderPageInto(document.getElementById('bg-r'),
+    mob ? null : (pages[prevL+1]||null));
+
+  flipEl.style.transition = 'none';
+  flipEl.style.transform  = 'rotateY(0deg)';
+  flipEl.style.visibility = 'visible';
   void flipEl.offsetWidth;
-  isFlipping=true;
-  flipEl.style.setProperty('--ft','.75s');
-  flipEl.classList.add('go');
-  setTimeout(()=>{
-    leftIdx=prevL;
+
+  isFlipping = true;
+
+  flipEl.style.transition = `transform ${FLIP_MS}ms cubic-bezier(.4,.1,.2,1)`;
+  flipEl.style.transform  = 'rotateY(180deg)';
+
+  // Sombra na página direita
+  shR.style.opacity = '0.9';
+  setTimeout(() => { shR.style.opacity = '0'; }, FLIP_MS * 0.5);
+
+  setTimeout(() => {
+    leftIdx = prevL;
     renderSpread();
-    flipEl.classList.remove('go');
-    flipEl.style.animation='none';
-    flipEl.style.display='none';
-    isFlipping=false;
-  },750);
+    flipEl.style.transition = 'none';
+    flipEl.style.transform  = 'rotateY(0deg)';
+    flipEl.style.visibility = 'hidden';
+    setTimeout(() => { isFlipping = false; }, 40);
+  }, FLIP_MS);
 }
 
 // Touch/swipe
